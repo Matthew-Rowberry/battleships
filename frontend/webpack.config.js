@@ -6,7 +6,7 @@ module.exports = (env, argv) => {
   console.log(env, argv);
 
   return {
-    entry: path.join(__dirname, './app/index.tsx'),
+    entry: path.join(__dirname, './src/index.tsx'),
     output: {
       filename: 'bundle/main.js',
       path: path.join(__dirname, './dist'),
