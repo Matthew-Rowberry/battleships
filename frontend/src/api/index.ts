@@ -1,29 +1,31 @@
-interface ISubscribers {
-  [key: string]: ((value: unknown) => void)[];
-}
+import { ISubscribers, Message } from '../types';
+
 class BattleshipClient {
   private socket: WebSocket;
   private subscribers: ISubscribers;
-  private requests: Record<number, { rs: () => void; rj: () => void }>;
+  private requests: Record<
+    number,
+    { rs: (message: Message) => void; rj: (message: Message) => void }
+  >;
   private requestId: number;
 
   constructor(socket: WebSocket) {
-    this.requestId = 0;
+    this.requestId = 1;
     this.socket = socket;
     this.socket.onmessage = this.handleMessage;
     this.subscribers = {};
     this.requests = {};
   }
 
-  public async send(message: object): Promise<unknown> {
-    this.socket.send(
+  public async send(message: Record<string, unknown>): Promise<unknown> {
+    await this.socket.send(
       JSON.stringify({
         ...message,
         ref: this.requestId,
       })
     );
 
-    const promise = new Promise<void>((resolve, reject) => {
+    const promise = new Promise<Message>((resolve, reject) => {
       this.requests[this.requestId] = { rs: resolve, rj: reject };
     });
 
@@ -61,11 +63,11 @@ class BattleshipClient {
     // Resolve any callers who used send()
     if (message.ref) {
       if (message.type === 'ACK') {
-        this.requests[message.ref].rs();
+        this.requests[message.ref].rs(message);
       }
 
       if (message.type === 'ERROR') {
-        this.requests[message.ref].rj();
+        this.requests[message.ref].rj(message);
       }
 
       delete this.requests[message.ref];
@@ -73,7 +75,7 @@ class BattleshipClient {
   };
 }
 
-const ws = new WebSocket('hi');
+const ws = new WebSocket('ws://localhost:8080');
 // TODO: we should wait for the websocket to be connected fully before anything else
 
-const client = new BattleshipClient(ws);
+export default new BattleshipClient(ws);

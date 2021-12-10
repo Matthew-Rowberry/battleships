@@ -1,87 +1,80 @@
 import React, { useState, useEffect } from 'react';
 import Chat from '../features/chat';
-
-const ws = new WebSocket('ws://192.168.158.228:9091');
-ws.onerror = (error) => console.log(error);
+import BattleshipClient from '../api';
+import { MessageType } from '../types';
 
 const App: React.FC = () => {
+  const [username, updateUsername] = useState('');
   const [session, updateSession] = useState(false);
-  const [currentMessage, updateCurrentMessage] = useState('');
-  const [chat, updateChat] = useState<string[]>([]);
 
-  useEffect(() => {
-    // ws.onopen = () => updateSession(true);
-    ws.onerror = () => updateSession(false);
+  const login = async (username: string) => {
+    try {
+      const response = await BattleshipClient.send({
+        type: MessageType.LOGIN,
+        payload: {
+          username,
+        },
+      });
 
-    ws.onmessage = (message) => {
-      console.log(message);
-      const data = JSON.parse(message.data);
-      if (data.type === 'RECIEVE_MESSAGE') {
-        updateChat((prevChat) => [...prevChat, data.payload.content]);
-      }
-    };
-  }, []);
-
-  const inputMessage = (e: any) => {
-    updateCurrentMessage(e.target.value);
+      updateSession(true);
+    } catch (e) {
+      console.log(e);
+      // something went wrong, not ACK
+    }
   };
 
-  const login = () => {
-    ws.send(
-      JSON.stringify({
-        type: 'LOGIN',
-        payload: {
-          username: 'randomiom',
-        },
-      })
-    );
-
-    updateSession(true);
-  };
-
-  const sendMessageToChat = () => {
-    ws.send(
-      JSON.stringify({
-        type: 'SEND_MESSAGE',
-        payload: {
-          content: currentMessage,
-        },
-      })
-    );
-    updateChat([...chat, currentMessage]);
-    updateCurrentMessage('');
+  const createRoom = async (roomType: 'public' | 'private') => {
+    await BattleshipClient.send({
+      type: MessageType.CREATE_ROOM,
+      payload: {
+        roomType,
+      },
+    });
   };
 
   return (
     <div>
-      <Chat chat={chat} />
+      {!session ? (
+        <form>
+          <label>
+            Log in to start
+            <input
+              type="text"
+              placeholder="Input Username"
+              value={username}
+              onChange={(e) => updateUsername(e.target.value)}
+            />
+          </label>
+          <button
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              login(username);
+            }}
+            disabled={username.length === 0}
+          >
+            Click to login
+          </button>
+        </form>
+      ) : (
+        `Logged in as ${username}`
+      )}
 
-      {!session ? 'Login to start chatting' : 'Logged in!'}
       <button
         onClick={() => {
-          login();
+          createRoom('public');
         }}
       >
-        Click to login
+        Create Public Room
       </button>
 
-      <form>
-        <input
-          disabled={!session}
-          placeholder="Start Typing..."
-          value={currentMessage}
-          onChange={(e) => inputMessage(e)}
-        />
-
-        <button
-          disabled={currentMessage.length === 0 || !session}
-          onClick={() => {
-            sendMessageToChat();
-          }}
-        >
-          Click to send
-        </button>
-      </form>
+      <button
+        onClick={() => {
+          createRoom('public');
+        }}
+      >
+        Create Private Room
+      </button>
     </div>
   );
 };
