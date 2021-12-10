@@ -6,6 +6,7 @@ import { MessageType } from '../types';
 const App: React.FC = () => {
   const [username, updateUsername] = useState('');
   const [session, updateSession] = useState(false);
+  const [password, updatePassword] = useState('');
 
   const login = async (username: string) => {
     try {
@@ -23,13 +24,22 @@ const App: React.FC = () => {
     }
   };
 
-  const createRoom = async (roomType: 'public' | 'private') => {
-    await BattleshipClient.send({
-      type: MessageType.CREATE_ROOM,
-      payload: {
-        roomType,
-      },
-    });
+  const createRoom = async (
+    roomType: 'public' | 'private',
+    password: string
+  ) => {
+    try {
+      const response = await BattleshipClient.send({
+        type: MessageType.CREATE_ROOM,
+        payload: {
+          roomType,
+          password,
+        },
+      });
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -57,24 +67,36 @@ const App: React.FC = () => {
           </button>
         </form>
       ) : (
-        `Logged in as ${username}`
+        <>
+          Logged in as {username}
+          <button
+            disabled={true}
+            onClick={() => {
+              createRoom('public', 'public');
+            }}
+          >
+            Create Public Room (Coming Soon)
+          </button>
+          <form>
+            <label>
+              Enter Passcode
+              <input
+                type="text"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => updatePassword(e.target.value)}
+              />
+            </label>
+            <button
+              onClick={() => {
+                createRoom('private', password);
+              }}
+            >
+              Create Private Room
+            </button>
+          </form>
+        </>
       )}
-
-      <button
-        onClick={() => {
-          createRoom('public');
-        }}
-      >
-        Create Public Room
-      </button>
-
-      <button
-        onClick={() => {
-          createRoom('public');
-        }}
-      >
-        Create Private Room
-      </button>
     </div>
   );
 };
