@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Chat from '../features/chat';
 import BattleshipClient from '../api';
 import { MessageType } from '../types';
+import Button from '../features/button/Button';
 
 const App: React.FC = () => {
   const [username, updateUsername] = useState('');
@@ -9,6 +10,8 @@ const App: React.FC = () => {
   const [password, updatePassword] = useState('');
 
   const login = async (username: string) => {
+    console.log('log');
+
     try {
       const response = await BattleshipClient.send({
         type: MessageType.LOGIN,
@@ -55,28 +58,17 @@ const App: React.FC = () => {
               onChange={(e) => updateUsername(e.target.value)}
             />
           </label>
-          <button
-            type="submit"
-            onClick={(e) => {
-              e.preventDefault();
-              login(username);
-            }}
-            disabled={username.length === 0}
-          >
-            Click to login
-          </button>
+
+          <Button disabled={username.length === 0} cb={() => login(username)}>
+            Click Me
+          </Button>
         </form>
       ) : (
         <>
           Logged in as {username}
-          <button
-            disabled={true}
-            onClick={() => {
-              createRoom('public', 'public');
-            }}
-          >
+          <Button disabled cb={() => createRoom('private', password)}>
             Create Public Room (Coming Soon)
-          </button>
+          </Button>
           <form>
             <label>
               Enter Passcode
@@ -87,13 +79,12 @@ const App: React.FC = () => {
                 onChange={(e) => updatePassword(e.target.value)}
               />
             </label>
-            <button
-              onClick={() => {
-                createRoom('private', password);
-              }}
+            <Button
+              disabled={password.length === 0}
+              cb={() => createRoom('private', password)}
             >
               Create Private Room
-            </button>
+            </Button>
           </form>
         </>
       )}

@@ -28,19 +28,19 @@ function handleReq(req: Request): Response {
 
 function handleSocket(socket: WebSocket) {
   let user: IUser;
-  let roomLobby: ILobby = {};
+  const roomLobby: ILobby = {};
   socket.onopen = () => console.log("socket opened");
   socket.onmessage = (e) => {
     const message = receiveMessage(e.data);
     try {
       if (message.type === "LOGIN" && !user) {
-        console.log("Login");
         user = { socket, username: message.payload.username };
+        console.log(`user ${user.username} logged in`);
       }
 
       if (user) {
         switch (message.type) {
-          case "CREATE_ROOM": {
+          case MessageType.CREATE_ROOM: {
             const id = generateRandomUUID();
             const room = {
               creator: user,
@@ -51,6 +51,10 @@ function handleSocket(socket: WebSocket) {
             break;
           }
 
+          case MessageType.JOIN_ROOM: {
+            break;
+          }
+
           default:
             break;
         }
@@ -58,8 +62,6 @@ function handleSocket(socket: WebSocket) {
 
       if (message.ref)
         sendMessage(socket, { type: MessageType.ACK, ref: message.ref });
-
-      // socket.send(new Date().toString());
     } catch (e) {
       console.log(e);
       if (message.ref)

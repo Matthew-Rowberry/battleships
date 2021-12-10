@@ -48,6 +48,10 @@ export interface ICreateRoom extends IMessage {
 
 export interface IJoinRoom extends IMessage {
   type: MessageType.JOIN_ROOM;
+  payload: {
+    id: string;
+    password: string;
+  };
 }
 
 export interface ILobby {
