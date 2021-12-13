@@ -2,18 +2,25 @@ import React, { useState, useEffect } from 'react';
 import Chat from '../features/chat';
 import BattleshipClient from '../api';
 import { MessageType } from '../types';
-import Button from '../features/button/Button';
+import Button from '../components/button/Button';
+import TextInput from '../components/button/textInput/TextInput';
 
 const App: React.FC = () => {
   const [username, updateUsername] = useState('');
   const [session, updateSession] = useState(false);
-  const [password, updatePassword] = useState('');
+  const [createRoomPassword, setCreateRoomPassword] = useState('');
+  const [joinRoomPassword, setJoinRoomPassword] = useState('');
+
+  useEffect(() => {
+    BattleshipClient.subscribe('game_started', gameStarted);
+    return () => {
+      BattleshipClient.unsubscribe('game_started', gameStarted);
+    };
+  }, []);
 
   const login = async (username: string) => {
-    console.log('log');
-
     try {
-      const response = await BattleshipClient.send({
+      await BattleshipClient.send({
         type: MessageType.LOGIN,
         payload: {
           username,
@@ -27,18 +34,38 @@ const App: React.FC = () => {
     }
   };
 
+  const gameStarted = (payload: unknown) => {
+    console.log('runs');
+  };
+
   const createRoom = async (
     roomType: 'public' | 'private',
     password: string
   ) => {
     try {
-      const response = await BattleshipClient.send({
+      const response: any = await BattleshipClient.send({
         type: MessageType.CREATE_ROOM,
         payload: {
           roomType,
           password,
         },
       });
+
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const joinRoom = async (password: string) => {
+    try {
+      const response: any = await BattleshipClient.send({
+        type: MessageType.JOIN_ROOM,
+        payload: {
+          password,
+        },
+      });
+
       console.log(response);
     } catch (err) {
       console.log(err);
@@ -49,15 +76,13 @@ const App: React.FC = () => {
     <div>
       {!session ? (
         <form>
-          <label>
+          <TextInput
+            placeholder="Username..."
+            inputValue={username}
+            cb={(e) => updateUsername(e)}
+          >
             Log in to start
-            <input
-              type="text"
-              placeholder="Input Username"
-              value={username}
-              onChange={(e) => updateUsername(e.target.value)}
-            />
-          </label>
+          </TextInput>
 
           <Button disabled={username.length === 0} cb={() => login(username)}>
             Click Me
@@ -66,24 +91,39 @@ const App: React.FC = () => {
       ) : (
         <>
           Logged in as {username}
-          <Button disabled cb={() => createRoom('private', password)}>
+          <Button disabled cb={() => createRoom('private', createRoomPassword)}>
             Create Public Room (Coming Soon)
           </Button>
           <form>
-            <label>
+            <TextInput
+              type="password"
+              placeholder="Create Room Password"
+              inputValue={createRoomPassword}
+              cb={(e) => setCreateRoomPassword(e)}
+            >
               Enter Passcode
-              <input
-                type="text"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => updatePassword(e.target.value)}
-              />
-            </label>
+            </TextInput>
             <Button
-              disabled={password.length === 0}
-              cb={() => createRoom('private', password)}
+              disabled={createRoomPassword.length === 0}
+              cb={() => createRoom('private', createRoomPassword)}
             >
               Create Private Room
+            </Button>
+          </form>
+          <form>
+            <TextInput
+              type="password"
+              placeholder="Join Room Password"
+              inputValue={joinRoomPassword}
+              cb={(e) => setJoinRoomPassword(e)}
+            >
+              Join Room
+            </TextInput>
+            <Button
+              disabled={joinRoomPassword.length === 0}
+              cb={() => joinRoom(joinRoomPassword)}
+            >
+              Join Private Room
             </Button>
           </form>
         </>

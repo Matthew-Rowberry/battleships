@@ -32,6 +32,7 @@ export interface ILoginMessage extends IMessage {
 
 export interface IAckMessage extends IMessage {
   type: MessageType.ACK;
+  payload?: unknown;
 }
 
 export interface IErrMessage extends IMessage {
@@ -65,10 +66,12 @@ interface IRoom {
   creator: IUser;
   opponent?: IUser;
   roomType: RoomType;
+  // Adding password here but will need to be removed once public rooms become a thing
+  password: string;
 }
 
 interface IPrivateRoom extends IRoom {
-  passcode: string;
+  password: string;
 }
 
 export interface IGame {}

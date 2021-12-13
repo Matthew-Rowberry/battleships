@@ -3,6 +3,7 @@ import { generateRandomUUID } from "./handlers.ts";
 import { MessageType, IUser, ILobby } from "./types.ts";
 
 const server = Deno.listen({ port: 8080 });
+const roomLobby: ILobby = {};
 
 for await (const conn of server) {
   handle(conn);
@@ -28,7 +29,6 @@ function handleReq(req: Request): Response {
 
 function handleSocket(socket: WebSocket) {
   let user: IUser;
-  const roomLobby: ILobby = {};
   socket.onopen = () => console.log("socket opened");
   socket.onmessage = (e) => {
     const message = receiveMessage(e.data);
@@ -48,17 +48,51 @@ function handleSocket(socket: WebSocket) {
               password: message.payload.password,
             };
             roomLobby[id] = room;
-            break;
+
+            console.log(`user: ${user.username} created room with id: ${id}`);
+
+            sendMessage(socket, {
+              type: MessageType.ACK,
+              ref: message.ref,
+              payload: { id, message: "waiting_for_player" },
+            });
+            return;
           }
 
           case MessageType.JOIN_ROOM: {
-            break;
+            console.log(message);
+            for (const key in roomLobby) {
+              if (Object.prototype.hasOwnProperty.call(roomLobby, key)) {
+                const element = roomLobby[key];
+                console.log(element);
+
+                if (element.password === message.payload.password) {
+                  element.opponent = {
+                    socket: user.socket,
+                    username: user.username,
+                  };
+                  return sendMessage(socket, {
+                    type: MessageType.ACK,
+                    ref: message.ref,
+                    payload: {
+                      message: "game_started",
+                    },
+                  });
+                }
+              }
+            }
+
+            throw Error("No rooms with matching password");
+            // break;
           }
 
           default:
             break;
+          // throw Error("User is defined but message type is not recognised");
         }
       }
+
+      // console.log(roomLobby);
 
       if (message.ref)
         sendMessage(socket, { type: MessageType.ACK, ref: message.ref });
