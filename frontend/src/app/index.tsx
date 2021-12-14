@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import Chat from '../features/chat';
 import BattleshipClient from '../api';
 import { MessageType } from '../types';
 import Button from '../components/button/Button';
-import TextInput from '../components/button/textInput/TextInput';
+import UserRoom from '../context/ContextProvider';
+import InputForm from '../features/chat/InputForm';
 
 const App: React.FC = () => {
   const [username, updateUsername] = useState('');
@@ -12,9 +12,9 @@ const App: React.FC = () => {
   const [joinRoomPassword, setJoinRoomPassword] = useState('');
 
   useEffect(() => {
-    BattleshipClient.subscribe('game_started', gameStarted);
+    BattleshipClient.subscribe('GAME_STARTED', gameStarted);
     return () => {
-      BattleshipClient.unsubscribe('game_started', gameStarted);
+      BattleshipClient.unsubscribe('GAME_STARTED', gameStarted);
     };
   }, []);
 
@@ -32,10 +32,6 @@ const App: React.FC = () => {
       console.log(e);
       // something went wrong, not ACK
     }
-  };
-
-  const gameStarted = (payload: unknown) => {
-    console.log('runs');
   };
 
   const createRoom = async (
@@ -72,63 +68,55 @@ const App: React.FC = () => {
     }
   };
 
-  return (
-    <div>
-      {!session ? (
-        <form>
-          <TextInput
-            placeholder="Username..."
-            inputValue={username}
-            cb={(e) => updateUsername(e)}
-          >
-            Log in to start
-          </TextInput>
+  const gameStarted = (payload: unknown) => {
+    console.log(payload);
 
-          <Button disabled={username.length === 0} cb={() => login(username)}>
-            Click Me
-          </Button>
-        </form>
-      ) : (
-        <>
-          Logged in as {username}
-          <Button disabled cb={() => createRoom('private', createRoomPassword)}>
-            Create Public Room (Coming Soon)
-          </Button>
-          <form>
-            <TextInput
-              type="password"
-              placeholder="Create Room Password"
-              inputValue={createRoomPassword}
-              cb={(e) => setCreateRoomPassword(e)}
-            >
-              Enter Passcode
-            </TextInput>
+    // console.log('runs');
+  };
+
+  return (
+    <UserRoom>
+      <div>
+        {!session ? (
+          <InputForm
+            inputPlaceholder="Username"
+            inputValue={username}
+            inputCb={(e) => updateUsername(e)}
+            inputLabel="Enter Username"
+            btnDisabled={username.length === 0}
+            btnCb={() => login(username)}
+            btnText="Click me"
+          />
+        ) : (
+          <>
+            Logged in as {username}
             <Button
-              disabled={createRoomPassword.length === 0}
+              disabled
               cb={() => createRoom('private', createRoomPassword)}
-            >
-              Create Private Room
-            </Button>
-          </form>
-          <form>
-            <TextInput
-              type="password"
-              placeholder="Join Room Password"
+              textValue="Create Public Room (Coming Soon)"
+            />
+            <InputForm
+              inputPlaceholder="Create Room Password"
+              inputValue={createRoomPassword}
+              inputCb={(e) => setCreateRoomPassword(e)}
+              inputLabel="Enter Passcode"
+              btnDisabled={createRoomPassword.length === 0}
+              btnCb={() => createRoom('private', createRoomPassword)}
+              btnText="Create Private Room"
+            />
+            <InputForm
+              inputPlaceholder="Join Room Password"
               inputValue={joinRoomPassword}
-              cb={(e) => setJoinRoomPassword(e)}
-            >
-              Join Room
-            </TextInput>
-            <Button
-              disabled={joinRoomPassword.length === 0}
-              cb={() => joinRoom(joinRoomPassword)}
-            >
-              Join Private Room
-            </Button>
-          </form>
-        </>
-      )}
-    </div>
+              inputCb={(e) => setJoinRoomPassword(e)}
+              inputLabel="Join Room"
+              btnDisabled={joinRoomPassword.length === 0}
+              btnCb={() => joinRoom(joinRoomPassword)}
+              btnText="Join Private Room"
+            />
+          </>
+        )}
+      </div>
+    </UserRoom>
   );
 };
 

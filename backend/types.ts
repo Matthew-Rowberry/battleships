@@ -8,7 +8,8 @@ export type Message =
   | IAckMessage
   | IErrMessage
   | ICreateRoom
-  | IJoinRoom;
+  | IJoinRoom
+  | IGameStarted;
 
 interface IMessage {
   type: string;
@@ -21,6 +22,7 @@ export enum MessageType {
   ERROR = "ERROR",
   CREATE_ROOM = "CREATE_ROOM",
   JOIN_ROOM = "JOIN_ROOM",
+  GAME_STARTED = "GAME_STARTED",
 }
 
 export interface ILoginMessage extends IMessage {
@@ -55,6 +57,10 @@ export interface IJoinRoom extends IMessage {
   };
 }
 
+export interface IGameStarted extends IMessage {
+  type: MessageType.GAME_STARTED;
+}
+
 export interface ILobby {
   [id: string]: Room;
 }
@@ -66,12 +72,10 @@ interface IRoom {
   creator: IUser;
   opponent?: IUser;
   roomType: RoomType;
-  // Adding password here but will need to be removed once public rooms become a thing
+  //@TODO Adding password here but will need to be removed once public rooms become a thing
   password: string;
 }
 
 interface IPrivateRoom extends IRoom {
   password: string;
 }
-
-export interface IGame {}

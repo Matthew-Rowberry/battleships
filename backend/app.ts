@@ -1,6 +1,6 @@
 import { sendMessage, receiveMessage } from "./requests.ts";
-import { generateRandomUUID } from "./handlers.ts";
-import { MessageType, IUser, ILobby } from "./types.ts";
+import { generateRandomUUID, sendMessageToRoom } from "./handlers.ts";
+import { Message, MessageType, IUser, ILobby } from "./types.ts";
 
 const server = Deno.listen({ port: 8080 });
 const roomLobby: ILobby = {};
@@ -33,10 +33,8 @@ function handleSocket(socket: WebSocket) {
   socket.onmessage = (e) => {
     const message = receiveMessage(e.data);
     try {
-      if (message.type === "LOGIN" && !user) {
+      if (message.type === "LOGIN" && !user)
         user = { socket, username: message.payload.username };
-        console.log(`user ${user.username} logged in`);
-      }
 
       if (user) {
         switch (message.type) {
@@ -49,8 +47,6 @@ function handleSocket(socket: WebSocket) {
             };
             roomLobby[id] = room;
 
-            console.log(`user: ${user.username} created room with id: ${id}`);
-
             sendMessage(socket, {
               type: MessageType.ACK,
               ref: message.ref,
@@ -60,40 +56,34 @@ function handleSocket(socket: WebSocket) {
           }
 
           case MessageType.JOIN_ROOM: {
-            console.log(message);
             for (const key in roomLobby) {
               if (Object.prototype.hasOwnProperty.call(roomLobby, key)) {
                 const element = roomLobby[key];
-                console.log(element);
+                // return assignOpponentToRoom(roomLobby[key], user, message);
+
+                if (element.opponent) throw Error("Room currently full");
 
                 if (element.password === message.payload.password) {
                   element.opponent = {
                     socket: user.socket,
                     username: user.username,
                   };
-                  return sendMessage(socket, {
-                    type: MessageType.ACK,
-                    ref: message.ref,
-                    payload: {
-                      message: "game_started",
-                    },
+
+                  sendMessageToRoom(element, {
+                    type: MessageType.GAME_STARTED,
                   });
+                  return;
                 }
               }
             }
 
             throw Error("No rooms with matching password");
-            // break;
           }
 
           default:
             break;
-          // throw Error("User is defined but message type is not recognised");
         }
       }
-
-      // console.log(roomLobby);
-
       if (message.ref)
         sendMessage(socket, { type: MessageType.ACK, ref: message.ref });
     } catch (e) {
