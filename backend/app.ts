@@ -50,7 +50,14 @@ function handleSocket(socket: WebSocket) {
             sendMessage(socket, {
               type: MessageType.ACK,
               ref: message.ref,
-              payload: { id, message: "waiting_for_player" },
+            });
+
+            sendMessage(socket, {
+              type: MessageType.WAITING_FOR_PLAYER,
+              payload: {
+                roomId: id,
+                room: roomLobby[id],
+              },
             });
             return;
           }

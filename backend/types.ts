@@ -8,6 +8,7 @@ export type Message =
   | IAckMessage
   | IErrMessage
   | ICreateRoom
+  | IWaitingForPlayer
   | IJoinRoom
   | IGameStarted;
 
@@ -23,6 +24,7 @@ export enum MessageType {
   CREATE_ROOM = "CREATE_ROOM",
   JOIN_ROOM = "JOIN_ROOM",
   GAME_STARTED = "GAME_STARTED",
+  WAITING_FOR_PLAYER = "WAITING_FOR_PLAYER",
 }
 
 export interface ILoginMessage extends IMessage {
@@ -56,7 +58,13 @@ export interface IJoinRoom extends IMessage {
     password: string;
   };
 }
-
+export interface IWaitingForPlayer extends IMessage {
+  type: MessageType.WAITING_FOR_PLAYER;
+  payload: {
+    roomId: string;
+    room: Room;
+  };
+}
 export interface IGameStarted extends IMessage {
   type: MessageType.GAME_STARTED;
 }
