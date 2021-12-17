@@ -1,9 +1,7 @@
 import React from 'react';
-
-type Type = 'text' | 'password' | 'number';
-
+import { InputTypes } from '../../types';
 interface IProps {
-  type?: Type;
+  type?: InputTypes;
   placeholder?: string;
   inputValue: string;
   cb: (e: string) => void;
