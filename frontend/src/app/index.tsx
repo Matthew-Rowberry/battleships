@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import BattleshipClient from '../api';
 import { MessageType } from '../types';
-import Button from '../components/button/Button';
-import UserRoom from '../context/ContextProvider';
+import GlobalProvider from '../context/globalProvider/GlobalProvider';
 import InputForm from '../features/chat/InputForm';
 
 const App: React.FC = () => {
@@ -20,7 +19,7 @@ const App: React.FC = () => {
 
   const login = async (username: string) => {
     try {
-      await BattleshipClient.send({
+      const res = await BattleshipClient.send({
         type: MessageType.LOGIN,
         payload: {
           username,
@@ -39,7 +38,7 @@ const App: React.FC = () => {
     password: string
   ) => {
     try {
-      const response: any = await BattleshipClient.send({
+      const response = await BattleshipClient.send({
         type: MessageType.CREATE_ROOM,
         payload: {
           roomType,
@@ -47,7 +46,9 @@ const App: React.FC = () => {
         },
       });
 
-      console.log(response);
+      // if (response.type === MessageType.ACK)
+
+      // userContext.assignCreatorToRoom(response);
     } catch (err) {
       console.log(err);
     }
@@ -55,17 +56,19 @@ const App: React.FC = () => {
 
   const joinRoom = async (password: string) => {
     try {
-      const response: any = await BattleshipClient.send({
+      await BattleshipClient.send({
         type: MessageType.JOIN_ROOM,
         payload: {
           password,
         },
       });
-
-      console.log(response);
     } catch (err) {
       console.log(err);
     }
+  };
+
+  const waitingForPlayer = (payload: unknown) => {
+    console.log(payload);
   };
 
   const gameStarted = (payload: unknown) => {
@@ -75,7 +78,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <UserRoom>
+    <GlobalProvider>
       <div>
         {!session ? (
           <InputForm
@@ -90,11 +93,6 @@ const App: React.FC = () => {
         ) : (
           <>
             Logged in as {username}
-            <Button
-              disabled
-              cb={() => createRoom('private', createRoomPassword)}
-              textValue="Create Public Room (Coming Soon)"
-            />
             <InputForm
               inputPlaceholder="Create Room Password"
               inputValue={createRoomPassword}
@@ -116,7 +114,7 @@ const App: React.FC = () => {
           </>
         )}
       </div>
-    </UserRoom>
+    </GlobalProvider>
   );
 };
 

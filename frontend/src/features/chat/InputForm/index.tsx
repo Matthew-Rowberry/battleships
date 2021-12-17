@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Button from '../../../components/button/Button';
 import TextInput from '../../../components/textInput/TextInput';
-
-type Type = 'text' | 'password' | 'number';
+import { UserRoomContext } from '../../../context/userRoomProvider/UserRoomProvider';
+import { InputTypes } from '../../../types';
 
 interface ILogin {
   inputLabel: string;
-  inputType?: Type;
+  inputType?: InputTypes;
   inputPlaceholder: string;
   inputValue: string;
   inputCb: (e: any) => void;
@@ -24,6 +24,9 @@ const InputForm: React.FC<ILogin> = ({
   btnCb,
   btnText,
 }) => {
+  const context = useContext(UserRoomContext);
+  console.log(context);
+
   return (
     <form>
       <TextInput

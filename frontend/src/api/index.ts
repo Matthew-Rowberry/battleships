@@ -17,7 +17,7 @@ class BattleshipClient {
     this.requests = {};
   }
 
-  public async send(message: Record<string, unknown>): Promise<unknown> {
+  public async send(message: Record<string, unknown>): Promise<Message> {
     await this.socket.send(
       JSON.stringify({
         ...message,
