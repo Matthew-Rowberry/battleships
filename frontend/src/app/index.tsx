@@ -1,120 +1,105 @@
 import React, { useState, useEffect, useContext } from 'react';
-import BattleshipClient from '../api';
+import BattleshipClient from '../api/client';
 import { MessageType } from '../types';
-import GlobalProvider from '../context/globalProvider/GlobalProvider';
-import InputForm from '../features/chat/InputForm';
+import InputForm from '../features/inputForm';
+import Button from '../components/button';
+import { UserRoomContext } from '../context/userRoomProvider';
+import Game from '../features/game/game';
 
 const App: React.FC = () => {
+  const userContext = useContext(UserRoomContext);
+
   const [username, updateUsername] = useState('');
-  const [session, updateSession] = useState(false);
-  const [createRoomPassword, setCreateRoomPassword] = useState('');
-  const [joinRoomPassword, setJoinRoomPassword] = useState('');
+  const [joinRoomId, setJoinRoomId] = useState('');
 
   useEffect(() => {
-    BattleshipClient.subscribe('GAME_STARTED', gameStarted);
+    BattleshipClient.subscribe('GAME_STARTED', userContext.startGame);
     return () => {
-      BattleshipClient.unsubscribe('GAME_STARTED', gameStarted);
+      BattleshipClient.unsubscribe('GAME_STARTED', userContext.startGame);
     };
   }, []);
 
   const login = async (username: string) => {
-    try {
-      const res = await BattleshipClient.send({
-        type: MessageType.LOGIN,
-        payload: {
-          username,
-        },
-      });
-
-      updateSession(true);
-    } catch (e) {
-      console.log(e);
-      // something went wrong, not ACK
-    }
+    userContext.sendUsernameToServer(username);
   };
 
-  const createRoom = async (
-    roomType: 'public' | 'private',
-    password: string
-  ) => {
+  const createRoom = async () => {
     try {
       const response = await BattleshipClient.send({
         type: MessageType.CREATE_ROOM,
-        payload: {
-          roomType,
-          password,
-        },
       });
 
-      // if (response.type === MessageType.ACK)
-
-      // userContext.assignCreatorToRoom(response);
+      if (response.type === MessageType.ACK) {
+        userContext.dispatch({
+          type: MessageType.JOIN_ROOM,
+          payload: response.payload,
+        });
+      }
     } catch (err) {
       console.log(err);
     }
   };
 
-  const joinRoom = async (password: string) => {
+  const joinRoom = async (id: string) => {
     try {
-      await BattleshipClient.send({
+      const response = await BattleshipClient.send({
         type: MessageType.JOIN_ROOM,
-        payload: {
-          password,
-        },
+        payload: id,
       });
+
+      if (response.type === MessageType.ACK) {
+        userContext.dispatch({
+          type: MessageType.JOIN_ROOM,
+          payload: id,
+        });
+      }
     } catch (err) {
       console.log(err);
     }
   };
 
-  const waitingForPlayer = (payload: unknown) => {
+  const gameStarted = (payload: any) => {
     console.log(payload);
-  };
-
-  const gameStarted = (payload: unknown) => {
-    console.log(payload);
-
-    // console.log('runs');
   };
 
   return (
-    <GlobalProvider>
-      <div>
-        {!session ? (
+    <div>
+      {!userContext.session ? (
+        <InputForm
+          inputPlaceholder="Username"
+          inputValue={username}
+          inputCb={(e) => updateUsername(e)}
+          inputLabel="Enter Username"
+          btnDisabled={username.length === 0}
+          btnCb={() => login(username)}
+          btnText="Click me"
+        />
+      ) : !userContext.roomId ? (
+        <div>
+          Logged in as {username}
+          <Button cb={() => createRoom()} textValue="Create Room"></Button>
           <InputForm
-            inputPlaceholder="Username"
-            inputValue={username}
-            inputCb={(e) => updateUsername(e)}
-            inputLabel="Enter Username"
-            btnDisabled={username.length === 0}
-            btnCb={() => login(username)}
-            btnText="Click me"
+            inputPlaceholder="Join Room Password"
+            inputValue={joinRoomId}
+            inputCb={(e) => setJoinRoomId(e)}
+            inputLabel="Join Room"
+            btnDisabled={joinRoomId.length === 0}
+            btnCb={() => joinRoom(joinRoomId)}
+            btnText="Join Private Room"
           />
-        ) : (
-          <>
-            Logged in as {username}
-            <InputForm
-              inputPlaceholder="Create Room Password"
-              inputValue={createRoomPassword}
-              inputCb={(e) => setCreateRoomPassword(e)}
-              inputLabel="Enter Passcode"
-              btnDisabled={createRoomPassword.length === 0}
-              btnCb={() => createRoom('private', createRoomPassword)}
-              btnText="Create Private Room"
-            />
-            <InputForm
-              inputPlaceholder="Join Room Password"
-              inputValue={joinRoomPassword}
-              inputCb={(e) => setJoinRoomPassword(e)}
-              inputLabel="Join Room"
-              btnDisabled={joinRoomPassword.length === 0}
-              btnCb={() => joinRoom(joinRoomPassword)}
-              btnText="Join Private Room"
-            />
-          </>
-        )}
-      </div>
-    </GlobalProvider>
+        </div>
+      ) : !userContext.gameInProgress ? (
+        <div>
+          Logged in as {username}, your room id is:
+          <p>
+            <b>{userContext.roomId}</b>
+          </p>
+          share this room id to start a game
+        </div>
+      ) : (
+        <Game />
+      )}
+    </div>
   );
 };
 

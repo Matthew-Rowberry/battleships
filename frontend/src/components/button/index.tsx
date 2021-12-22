@@ -2,7 +2,7 @@ import React from 'react';
 
 interface IButton {
   cb: () => void;
-  disabled: boolean;
+  disabled?: boolean;
   textValue: string;
 }
 

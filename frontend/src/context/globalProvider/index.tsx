@@ -1,5 +1,5 @@
 import React from 'react';
-import UserRoomProvider from '../userRoomProvider/UserRoomProvider';
+import UserRoomProvider from '../userRoomProvider';
 
 const GlobalProvider: React.FC = ({ children }) => {
   return <UserRoomProvider>{children}</UserRoomProvider>;
