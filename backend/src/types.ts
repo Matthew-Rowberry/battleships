@@ -1,7 +1,7 @@
 type RoomId = string;
 
 export interface IWaitingRoom {
-  creator: IUser,
+  creator: IUser;
 }
 
 export interface IBoard {
@@ -11,20 +11,20 @@ export interface IBoard {
 }
 
 export interface IGame {
-  users: [IUser, IUser],
-  boards: [IBoard, IBoard],
-  turn: number,
+  users: [IUser, IUser];
+  boards: [IBoard, IBoard];
+  turn: number;
 }
 
 export interface IApplication {
-  rooms: Record<RoomId, IWaitingRoom>,
+  rooms: Record<RoomId, IWaitingRoom>;
 }
 
 export interface IUser {
   socket: WebSocket;
   username: string;
   currentRoom?: RoomId;
-  game?: IGame,
+  game?: IGame;
 }
 
 // ----
@@ -36,6 +36,7 @@ export type Message =
   | IGameClose
   | ICreateRoom
   | IJoinRoom
+  | ICloseRoom
   | IGameStarted
   | IPlacePieces
   | ISetTurn
@@ -56,6 +57,7 @@ export enum MessageType {
   // ROOM ACTIONS
   CREATE_ROOM = "CREATE_ROOM",
   JOIN_ROOM = "JOIN_ROOM",
+  CLOSE_ROOM = "CLOSE_ROOM",
 
   // GAME ACTIONS
   GAME_CLOSE = "GAME_CLOSE",
@@ -92,7 +94,11 @@ export interface ICreateRoom extends IMessage {
 
 export interface IJoinRoom extends IMessage {
   type: MessageType.JOIN_ROOM;
-  payload: string
+  payload: string;
+}
+export interface ICloseRoom extends IMessage {
+  type: MessageType.CLOSE_ROOM;
+  payload: string;
 }
 
 //
@@ -123,8 +129,8 @@ export interface ITakeTurn extends IMessage {
 export interface ITurnResult extends IMessage {
   type: MessageType.TURN_RESULT;
   payload: {
-    location: [number, number],
-    hit: boolean,
+    location: [number, number];
+    hit: boolean;
   };
 }
 

@@ -23,8 +23,9 @@ export type Message =
   | IAckMessage // Done
   | IErrMessage // Done
   | ICreateRoom // Done
-  | IJoinRoom
-  | IGameStarted
+  | IJoinRoom // Done
+  | ICloseRoom
+  | IGameStarted // Done
   | IPlacePieces
   | ISetTurn
   | ITakeTurn
@@ -45,6 +46,7 @@ export enum MessageType {
   // ROOM ACTIONS
   CREATE_ROOM = 'CREATE_ROOM',
   JOIN_ROOM = 'JOIN_ROOM',
+  CLOSE_ROOM = 'CLOSE_ROOM',
 
   // GAME ACTIONS
   GAME_CLOSE = 'GAME_CLOSE',
@@ -82,6 +84,11 @@ export interface ICreateRoom extends IMessage {
 export interface IJoinRoom extends IMessage {
   type: MessageType.JOIN_ROOM;
   payload: string;
+}
+
+export interface ICloseRoom extends IMessage {
+  type: MessageType.CLOSE_ROOM;
+  payload?: string;
 }
 
 //

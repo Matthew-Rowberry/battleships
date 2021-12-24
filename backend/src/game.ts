@@ -29,9 +29,10 @@ export function createGame(player1: IUser, player2: IUser): IGame {
 // Actions
 
 export function disconnectGame(game: IGame, disconnectedUser: IUser) {
-  broadcastExclude(game, disconnectedUser, {
-    type: MessageType.GAME_CLOSE,
-  });
+  // @TODO delete game when user is removed and push remaining user into new room
+  // broadcastExclude(game, disconnectedUser, {
+  //   type: MessageType.GAME_CLOSE,
+  // });
 }
 
 export function startGame(game: IGame) {

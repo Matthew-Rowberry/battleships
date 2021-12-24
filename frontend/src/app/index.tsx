@@ -4,7 +4,7 @@ import { MessageType } from '../types';
 import InputForm from '../features/inputForm';
 import Button from '../components/button';
 import { UserRoomContext } from '../context/userRoomProvider';
-import Game from '../features/game/game';
+import Game from '../features/game';
 
 const App: React.FC = () => {
   const userContext = useContext(UserRoomContext);
@@ -58,9 +58,7 @@ const App: React.FC = () => {
     }
   };
 
-  const gameStarted = (payload: any) => {
-    console.log(payload);
-  };
+  const deleteRoomId = async () => {};
 
   return (
     <div>
@@ -77,7 +75,7 @@ const App: React.FC = () => {
       ) : !userContext.roomId ? (
         <div>
           Logged in as {username}
-          <Button cb={() => createRoom()} textValue="Create Room"></Button>
+          <Button cb={() => createRoom()} textValue="Create Room" />
           <InputForm
             inputPlaceholder="Join Room Password"
             inputValue={joinRoomId}
@@ -95,6 +93,7 @@ const App: React.FC = () => {
             <b>{userContext.roomId}</b>
           </p>
           share this room id to start a game
+          <Button cb={() => userContext.deleteRoomId()} textValue="Go Back" />
         </div>
       ) : (
         <Game />

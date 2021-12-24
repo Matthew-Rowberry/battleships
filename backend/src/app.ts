@@ -53,6 +53,13 @@ function handleUserMessage(user: IUser, message: Message) {
       return;
     }
 
+    case MessageType.CLOSE_ROOM: {
+      const id = message.payload;
+
+      delete application.rooms[id];
+      return;
+    }
+
     case MessageType.PLACE_PIECES: {
       if (!user.game) throw Error("Join a game first");
 
@@ -130,7 +137,9 @@ function handleSocket(socket: WebSocket) {
     }
   };
 
-  socket.onerror = (e) => console.log(e);
+  socket.onerror = (e) => {
+    console.log(e);
+  };
 
   socket.onclose = () => {
     if (user?.currentRoom) {

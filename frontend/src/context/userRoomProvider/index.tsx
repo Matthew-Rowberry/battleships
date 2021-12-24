@@ -17,6 +17,7 @@ const InitialState: IUserRoom = {
 interface IUserRoomContext extends IUserRoom {
   dispatch: (payload: Message) => void;
   sendUsernameToServer: (username: string) => void;
+  deleteRoomId: () => void;
   startGame: () => void;
 }
 
@@ -32,6 +33,11 @@ function reducer(state: IUserRoom, action: Message): IUserRoom {
       return {
         ...state,
         roomId: action.payload,
+      };
+    case MessageType.CLOSE_ROOM:
+      return {
+        ...state,
+        roomId: '',
       };
 
     case MessageType.GAME_STARTED:
@@ -68,13 +74,32 @@ const UserRoomProvider: React.FC = ({ children }) => {
     }
   };
 
+  const deleteRoomId = async () => {
+    try {
+      await BattleshipClient.send({
+        type: MessageType.CLOSE_ROOM,
+        payload: state.roomId,
+      });
+
+      dispatch({ type: MessageType.CLOSE_ROOM });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const startGame = () => {
     dispatch({ type: MessageType.GAME_STARTED });
   };
 
   return (
     <UserRoomContext.Provider
-      value={{ ...state, dispatch, sendUsernameToServer, startGame }}
+      value={{
+        ...state,
+        dispatch,
+        sendUsernameToServer,
+        deleteRoomId,
+        startGame,
+      }}
     >
       {children}
     </UserRoomContext.Provider>
