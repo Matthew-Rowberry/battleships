@@ -1,5 +1,6 @@
 export interface ISubscribers {
-  [key: string]: ((value: unknown) => void)[];
+  //@TODO type each messagetype and remove any
+  [key: string]: ((value: any) => void)[];
 }
 
 export interface IUser {
@@ -17,6 +18,7 @@ interface IRoom {
 }
 
 export type InputTypes = 'text' | 'password' | 'number';
+export type gridPlacement = [number, number];
 
 export type Message =
   | ILoginMessage //Done
@@ -26,7 +28,9 @@ export type Message =
   | IJoinRoom // Done
   | ICloseRoom
   | IGameStarted // Done
+  | IPlacePiece
   | IPlacePieces
+  | ILockBoard
   | ISetTurn
   | ITakeTurn
   | ITurnResult
@@ -51,7 +55,9 @@ export enum MessageType {
   // GAME ACTIONS
   GAME_CLOSE = 'GAME_CLOSE',
   GAME_STARTED = 'GAME_STARTED',
+  PLACE_PIECE = 'PLACE_PIECE',
   PLACE_PIECES = 'PLACE_PIECES',
+  LOCK_BOARD = 'LOCK_BOARD',
   SET_TURN = 'SET_TURN',
   TAKE_TURN = 'TAKE_TURN',
   TURN_RESULT = 'TURN_RESULT',
@@ -101,9 +107,18 @@ export interface IGameClose extends IMessage {
   type: MessageType.GAME_CLOSE;
 }
 
+export interface IPlacePiece extends IMessage {
+  type: MessageType.PLACE_PIECE;
+  payload: gridPlacement;
+}
+
 export interface IPlacePieces extends IMessage {
   type: MessageType.PLACE_PIECES;
-  payload: [number, number][];
+  payload: gridPlacement[];
+}
+
+export interface ILockBoard extends IMessage {
+  type: MessageType.LOCK_BOARD;
 }
 
 export interface ISetTurn extends IMessage {
@@ -113,13 +128,13 @@ export interface ISetTurn extends IMessage {
 
 export interface ITakeTurn extends IMessage {
   type: MessageType.TAKE_TURN;
-  payload: [number, number];
+  payload: gridPlacement;
 }
 
 export interface ITurnResult extends IMessage {
   type: MessageType.TURN_RESULT;
   payload: {
-    location: [number, number];
+    location: gridPlacement;
     hit: boolean;
   };
 }

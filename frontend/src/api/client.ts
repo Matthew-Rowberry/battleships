@@ -34,7 +34,7 @@ class BattleshipClient {
     return promise;
   }
 
-  public subscribe(message: string, callback: (payload: unknown) => void) {
+  public subscribe<T>(message: string, callback: (payload: T) => void) {
     // If this message hasnt been subscribed before add in new list
     if (!this.subscribers[message]) {
       this.subscribers[message] = [];
@@ -44,7 +44,7 @@ class BattleshipClient {
     this.subscribers[message].push(callback);
   }
 
-  public unsubscribe(message: string, callback: (payload: unknown) => void) {
+  public unsubscribe<T>(message: string, callback: (payload: T) => void) {
     this.subscribers[message] = this.subscribers[message].filter(
       (cb) => cb !== callback
     );

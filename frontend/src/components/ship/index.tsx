@@ -1,32 +1,30 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import BattleshipClient from '../../api/client';
 import styled from 'styled-components';
 import { MessageType } from '../../types';
+import Button from '../button';
+import { UserRoomContext } from '../../context/userRoomProvider';
 
-interface IProps {
-  index: number;
+interface IShipContainerProps {
+  clicked: boolean;
 }
 
-const ShipContainer = styled.span`
+interface IShipProps extends IShipContainerProps {
+  cb: () => void;
+}
+
+const ShipContainer = styled.span<IShipContainerProps>`
   width: 100px;
   height: 100px;
+  margin: 10px;
   display: block;
-  background-color: red;
+  background-color: ${(props) => (props.clicked ? 'green' : 'grey')};
 `;
 
-const placeShipOnSpace = async ([[x, y]]: [number, number][]) => {
-  try {
-    await BattleshipClient.send({
-      type: MessageType.PLACE_PIECES,
-      payload: { x, y },
-    });
-  } catch (err) {
-    console.log(err);
-  }
-};
+const Ship: React.FC<IShipProps> = ({ cb, clicked }) => {
+  const userContext = useContext(UserRoomContext);
 
-const Ship: React.FC<IProps> = (index) => {
-  return <ShipContainer onClick={() => placeShipOnSpace([[1, 1]])} />;
+  return <ShipContainer onClick={cb} clicked={clicked} />;
 };
 
 export default Ship;

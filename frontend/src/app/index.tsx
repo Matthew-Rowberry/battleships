@@ -14,8 +14,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     BattleshipClient.subscribe('GAME_STARTED', userContext.startGame);
+    BattleshipClient.subscribe('SET_TURN', userContext.setTurn);
     return () => {
       BattleshipClient.unsubscribe('GAME_STARTED', userContext.startGame);
+      BattleshipClient.subscribe('SET_TURN', userContext.setTurn);
     };
   }, []);
 
@@ -57,8 +59,6 @@ const App: React.FC = () => {
       console.log(err);
     }
   };
-
-  const deleteRoomId = async () => {};
 
   return (
     <div>
